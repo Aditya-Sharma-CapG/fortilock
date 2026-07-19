@@ -5,17 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Unlock Application</title>
     <style>
-      body {
-        font-family: sans-serif;
-        background: #1a1a1a;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
+      :root {
+        color-scheme: dark;
       }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #090b10;
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        overflow: hidden;
+      }
+
+      .unlock-card {
+        width: min(500px, 100%);
+        padding: 32px;
+        border-radius: 20px;
+        background: rgba(13, 17, 26, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+      }
+
+      .unlock-card > * + * {
+        margin-top: 18px;
+      }
+
       .sr-only {
         position: absolute;
         width: 1px;
@@ -27,40 +57,105 @@
         white-space: nowrap;
         border: 0;
       }
+
       h2 {
-        margin-bottom: 20px;
+        margin: 0 0 20px;
+        font-size: 1.55rem;
+        line-height: 1.2;
       }
-      input {
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 5px;
-        border: none;
-        width: 80%;
-        max-width: 300px;
+
+      .password-field-wrapper {
+        position: relative;
+        width: 100%;
+        margin-bottom: 18px;
       }
-      button {
-        padding: 10px 20px;
-        border-radius: 5px;
+
+      .password-field-wrapper input {
+        width: 100%;
+        padding: 16px 152px 16px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        outline: none;
+        font-size: 1rem;
+      }
+
+      .password-field-wrapper input:focus {
+        border-color: rgba(59, 130, 246, 0.9);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+      }
+
+      .toggle-password-btn {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 128px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.28);
+        color: #111827;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+
+      .toggle-password-btn:hover,
+      .toggle-password-btn:focus-visible {
+        background: rgba(255, 255, 255, 0.36);
+        color: #111827;
+      }
+
+      .unlock-action {
+        width: 100%;
+        padding: 12px 0;
+        border-radius: 14px;
         border: none;
-        background: #004085;
-        color: white;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 700;
         cursor: pointer;
       }
-      button:hover {
-        background: #002752;
+
+      .unlock-action:hover {
+        background: #1d4ed8;
+      }
+
+      .unlock-action:disabled {
+        background: rgba(37, 99, 235, 0.5);
+        cursor: not-allowed;
       }
     </style>
   </head>
   <body>
-    <h2 id="app-name">Unlock Application</h2>
-    <label for="password" class="sr-only">Master Password</label>
-    <input
-      type="password"
-      id="password"
-      placeholder="Enter Master Password"
-      autofocus
-    />
-    <button id="unlock-btn">Unlock</button>
+    <div class="unlock-card">
+      <h2 id="app-name">Unlock Application</h2>
+      <label for="password" class="sr-only">Master Password</label>
+      <div class="password-field-wrapper">
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter Master Password"
+          autofocus
+        />
+        <button
+          type="button"
+          class="toggle-password-btn"
+          id="toggle-password-btn"
+          aria-label="Show password"
+        >
+          Show password
+        </button>
+      </div>
+      <button class="unlock-action" id="unlock-btn">Unlock</button>
+    </div>
 
     <script>
       const searchParams = new URLSearchParams(window.location.search);
@@ -71,13 +166,29 @@
         document.getElementById("app-name").innerText = `Unlock: ${label}`;
       }
 
-      document.getElementById("unlock-btn").addEventListener("click", () => {
-        const passwordEl = document.getElementById("password");
-        const password = passwordEl.value;
-        window.fortilock
-          .submitUnlockPassword(password, itemId || "")
-          .then((res) => {
-            // main now returns { ok, error }
+      document
+        .getElementById("unlock-btn")
+        .addEventListener("click", async () => {
+          const passwordEl = document.getElementById("password");
+          if (!passwordEl) return;
+
+          const password = passwordEl.value.trim();
+          if (!password) {
+            alert("Enter your master password.");
+            passwordEl.focus();
+            return;
+          }
+
+          const unlockBtn = document.getElementById("unlock-btn");
+          if (unlockBtn) unlockBtn.disabled = true;
+          passwordEl.disabled = true;
+
+          try {
+            const res = await window.fortilock.submitUnlockPassword(
+              password,
+              itemId || "",
+            );
+
             const success = res && (res.ok === true || res === true);
             if (!success) {
               const err =
@@ -88,8 +199,31 @@
               passwordEl.value = "";
               passwordEl.focus();
             }
-          });
-      });
+          } catch (err) {
+            alert(err?.message || "An error occurred. Please try again.");
+            passwordEl.focus();
+          } finally {
+            passwordEl.disabled = false;
+            if (unlockBtn) unlockBtn.disabled = false;
+          }
+        });
+
+      const toggleButton = document.getElementById("toggle-password-btn");
+      const passwordInput = document.getElementById("password");
+      if (toggleButton && passwordInput) {
+        toggleButton.addEventListener("click", () => {
+          const isPassword = passwordInput.type === "password";
+          passwordInput.type = isPassword ? "text" : "password";
+          toggleButton.textContent = isPassword
+            ? "Unhide password"
+            : "Show password";
+          toggleButton.setAttribute(
+            "aria-label",
+            isPassword ? "Unhide password" : "Show password",
+          );
+          passwordInput.focus();
+        });
+      }
 
       document.getElementById("password").addEventListener("keydown", (e) => {
         if (e.key === "Enter") {

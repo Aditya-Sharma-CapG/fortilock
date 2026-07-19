@@ -72,8 +72,12 @@ export class SessionManager {
     return Array.from(this.sessions.values());
   }
 
-  async lockAllNow() {
-    const ids = Array.from(this.sessions.keys());
+  async lockAllNow(itemIds?: string[]) {
+    const ids =
+      itemIds && itemIds.length > 0
+        ? Array.from(this.sessions.keys()).filter((id) => itemIds.includes(id))
+        : Array.from(this.sessions.keys());
+
     for (const id of ids) {
       const session = this.sessions.get(id);
       if (session) {
@@ -139,6 +143,18 @@ export class SessionManager {
     for (const itemId of toExpire) {
       const item = vaultData.items.find((i) => i.id === itemId);
       if (!item) {
+        this.sessions.delete(itemId);
+        continue;
+      }
+
+      if (item.preventAutoLock) {
+        await this.audit.log({
+          id: item.id,
+          type: item.type,
+          action: "session_expire",
+          status: "success",
+          details: "Auto-lock skipped because preventAutoLock is enabled.",
+        });
         this.sessions.delete(itemId);
         continue;
       }

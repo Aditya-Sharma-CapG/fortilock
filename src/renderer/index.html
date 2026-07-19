@@ -131,6 +131,31 @@
         word-break: break-all;
       }
 
+      .card-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+      }
+
+      .prevent-auto-lock {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      .prevent-auto-lock input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+
+      .prevent-auto-lock span {
+        color: var(--text-primary);
+      }
+
       /* Badges */
       .badge {
         display: inline-block;
@@ -166,13 +191,22 @@
       }
       .btn:hover {
         border-color: var(--accent);
-        color: var(--accent);
       }
       .btn-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         padding: 6px 10px;
+      }
+      .item-select {
+        margin-right: 10px;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+      .card.selected {
+        border-color: rgba(0, 119, 255, 0.35);
+        background: rgba(0, 119, 255, 0.05);
       }
       .btn-primary {
         background: var(--accent);
@@ -182,13 +216,25 @@
       }
       .btn-primary:hover {
         background: var(--accent-hover);
+        color: #fff;
       }
       .btn-danger {
         border-color: var(--red);
         color: var(--red);
       }
       .btn-danger:hover {
-        background: rgba(248, 81, 73, 0.15);
+        background: rgba(248, 81, 73, 0.35);
+        color: #fff;
+      }
+      .btn-success {
+        background: var(--green);
+        color: #000;
+        border-color: var(--green);
+        font-weight: 600;
+      }
+      .btn-success:hover {
+        background: rgba(63, 185, 80, 1);
+        color: #fff;
       }
       .btn-sm {
         padding: 4px 10px;
@@ -229,6 +275,36 @@
       }
       .form-row .form-group {
         flex: 1;
+      }
+
+      .input-with-icon {
+        position: relative;
+      }
+
+      .input-with-icon input {
+        padding-right: 110px;
+      }
+
+      .input-toggle {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .input-toggle:hover {
+        background: rgba(255, 255, 255, 0.14);
       }
 
       .hidden {
@@ -275,20 +351,34 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 13px;
+        table-layout: fixed;
       }
-      .log-table th {
+      .log-table th,
+      .log-table td {
         text-align: left;
         padding: 8px 12px;
         border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        overflow-wrap: anywhere;
+      }
+      .log-table th {
         color: var(--text-secondary);
         font-weight: 500;
       }
-      .log-table td {
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--border);
+      .log-table td:last-child {
+        width: 35%;
+      }
+      .log-table td:nth-child(4) {
+        width: 18%;
+      }
+      .log-table td:nth-child(5) {
+        width: 12%;
       }
       .log-table tr:hover {
-        background: var(--bg-input);
+        background: rgba(0, 119, 255, 0.08);
+      }
+      .log-table tr:hover td {
+        transition: background-color 0.2s ease;
       }
       .log-status-success {
         color: var(--green);
@@ -383,19 +473,39 @@
         </div>
         <div class="form-group">
           <label for="masterPwd">Master Password</label>
-          <input
-            type="password"
-            id="masterPwd"
-            placeholder="Choose a strong password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="masterPwd"
+              placeholder="Choose a strong password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="masterPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label for="confirmPwd">Confirm Password</label>
-          <input
-            type="password"
-            id="confirmPwd"
-            placeholder="Re-enter password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="confirmPwd"
+              placeholder="Re-enter password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="confirmPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label for="confirmText"
@@ -418,11 +528,21 @@
         </p>
         <div class="form-group">
           <label for="vaultPwd">Master Password</label>
-          <input
-            type="password"
-            id="vaultPwd"
-            placeholder="Enter master password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="vaultPwd"
+              placeholder="Enter master password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="vaultPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <button class="btn btn-primary full-width" id="btnUnlockVault">
           Unlock Vault
@@ -446,11 +566,21 @@
         </p>
         <div class="form-group">
           <label for="recoveryCode">Recovery Code</label>
-          <input
-            type="text"
-            id="recoveryCode"
-            placeholder="Enter recovery code"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="recoveryCode"
+              placeholder="Enter recovery code"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="recoveryCode"
+              aria-label="Show recovery code"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="btn-group button-row">
           <button type="button" class="btn" id="btnCancelRecovery">Back</button>
@@ -470,19 +600,39 @@
         </p>
         <div class="form-group">
           <label for="resetNewPwd">New Password</label>
-          <input
-            type="password"
-            id="resetNewPwd"
-            placeholder="Enter a new password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="resetNewPwd"
+              placeholder="Enter a new password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="resetNewPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label for="resetNewPwdConfirm">Confirm New Password</label>
-          <input
-            type="password"
-            id="resetNewPwdConfirm"
-            placeholder="Confirm new password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="resetNewPwdConfirm"
+              placeholder="Confirm new password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="resetNewPwdConfirm"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <button
           type="button"
@@ -517,11 +667,21 @@
         <p>Enter your current master password to regenerate recovery codes.</p>
         <div class="form-group">
           <label for="regenPwd">Master Password</label>
-          <input
-            type="password"
-            id="regenPwd"
-            placeholder="Enter master password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="regenPwd"
+              placeholder="Enter master password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="regenPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="btn-group button-row">
           <button type="button" class="btn" id="btnCancelRegen">Cancel</button>
@@ -541,11 +701,21 @@
         </p>
         <div class="form-group">
           <label for="removeLogPassword">Master Password</label>
-          <input
-            type="password"
-            id="removeLogPassword"
-            placeholder="Enter master password"
-          />
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="removeLogPassword"
+              placeholder="Enter master password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="removeLogPassword"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
         </div>
         <div class="btn-group button-row">
           <button type="button" class="btn" id="btnCancelRemoveLog">
@@ -558,12 +728,51 @@
       </div>
     </div>
 
+    <div class="overlay hidden" id="unlockAllOverlay">
+      <div class="overlay-box">
+        <h2>Unlock All Items</h2>
+        <p id="unlockAllDescription">
+          Unlock all managed dashboard items with your master password.
+        </p>
+        <div class="form-group">
+          <label for="unlockAllPwd">Master Password</label>
+          <div class="input-with-icon">
+            <input
+              type="password"
+              id="unlockAllPwd"
+              placeholder="Enter master password"
+            />
+            <button
+              type="button"
+              class="input-toggle"
+              data-target="unlockAllPwd"
+              aria-label="Show password"
+            >
+              Show
+            </button>
+          </div>
+        </div>
+        <div class="btn-group button-row">
+          <button type="button" class="btn" id="btnCancelUnlockAll">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            id="btnConfirmUnlockAll"
+          >
+            Unlock All
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Main App Shell -->
     <div class="app-shell hidden" id="appShell">
       <aside class="sidebar">
         <div class="sidebar-brand">🛡 FortiLock</div>
         <nav class="sidebar-nav">
-          <button class="active" data-panel="items">Locked Items</button>
+          <button class="active" data-panel="items">Protected Items</button>
           <button data-panel="settings">Settings</button>
           <button data-panel="audit">Audit Log</button>
         </nav>
@@ -573,7 +782,25 @@
         <!-- PANEL: Items -->
         <div class="panel active" id="panel-items">
           <div class="panel-header">
-            <h1 class="section-title">Locked Items</h1>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+              "
+            >
+              <h1 class="section-title">Protected Items</h1>
+              <div class="btn-group">
+                <button class="btn" id="btnSelectAll" type="button">
+                  Select All
+                </button>
+                <button class="btn" id="btnUnselectAll" type="button">
+                  Unselect All
+                </button>
+              </div>
+            </div>
             <div class="btn-group">
               <button
                 class="btn"
@@ -599,9 +826,24 @@
               <button
                 class="btn btn-danger"
                 id="btnLockAll"
-                title="Lock every protected item immediately"
+                title="Lock selected or all managed dashboard items"
               >
                 Lock All Now
+              </button>
+              <button
+                class="btn btn-success"
+                id="btnUnlockAll"
+                title="Unlock selected or all managed dashboard items"
+              >
+                Unlock All
+              </button>
+              <button
+                class="btn btn-icon"
+                id="btnLockAllTooltip"
+                title="This info button explains that Lock All only affects FortiLock-managed dashboard items."
+                type="button"
+              >
+                ?
               </button>
             </div>
           </div>
@@ -673,28 +915,58 @@
             <h3 class="section-subtitle">Change Master Password</h3>
             <div class="form-group">
               <label for="currentPwd">Current Password</label>
-              <input
-                type="password"
-                id="currentPwd"
-                title="Enter your current vault password"
-              />
+              <div class="input-with-icon">
+                <input
+                  type="password"
+                  id="currentPwd"
+                  title="Enter your current vault password"
+                />
+                <button
+                  type="button"
+                  class="input-toggle"
+                  data-target="currentPwd"
+                  aria-label="Show password"
+                >
+                  Show
+                </button>
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="newPwd">New Password</label>
-                <input
-                  type="password"
-                  id="newPwd"
-                  title="Enter a new master password of at least 8 characters"
-                />
+                <div class="input-with-icon">
+                  <input
+                    type="password"
+                    id="newPwd"
+                    title="Enter a new master password of at least 8 characters"
+                  />
+                  <button
+                    type="button"
+                    class="input-toggle"
+                    data-target="newPwd"
+                    aria-label="Show password"
+                  >
+                    Show
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label for="newPwdConfirm">Confirm New Password</label>
-                <input
-                  type="password"
-                  id="newPwdConfirm"
-                  title="Repeat your new password to confirm it"
-                />
+                <div class="input-with-icon">
+                  <input
+                    type="password"
+                    id="newPwdConfirm"
+                    title="Repeat your new password to confirm it"
+                  />
+                  <button
+                    type="button"
+                    class="input-toggle"
+                    data-target="newPwdConfirm"
+                    aria-label="Show password"
+                  >
+                    Show
+                  </button>
+                </div>
               </div>
             </div>
             <button
@@ -720,6 +992,25 @@
               Regenerate Recovery Codes
             </button>
           </div>
+
+          <div class="card card-spaced">
+            <h3 class="section-subtitle">About FortiLock</h3>
+            <p>
+              Check for the latest release and view app metadata. Updates are
+              managed via GitHub releases.
+            </p>
+            <div class="form-group">
+              <div class="label-text">Application Version</div>
+              <div id="appVersion" class="version-value">Loading...</div>
+            </div>
+            <button
+              class="btn btn-primary"
+              id="btnCheckUpdates"
+              title="Check for the latest available FortiLock update"
+            >
+              Check for Updates
+            </button>
+          </div>
         </div>
 
         <!-- PANEL: Audit Log -->
@@ -732,7 +1023,13 @@
             >
               ← Back
             </button>
-            <h1 class="section-title">Audit Log</h1>
+            <div>
+              <h1 class="section-title">Audit Log</h1>
+              <p class="panel-description">
+                The audit log records security events and vault actions so you
+                can review changes, detect failures, and troubleshoot issues.
+              </p>
+            </div>
           </div>
           <div class="card card-table">
             <table class="log-table">
@@ -741,6 +1038,7 @@
                   <th>Time</th>
                   <th>Action</th>
                   <th>Type</th>
+                  <th>Item</th>
                   <th>Status</th>
                   <th>Details</th>
                 </tr>
@@ -868,6 +1166,7 @@
 
         if (panelId === "audit") loadAuditLog();
         if (panelId === "items") refreshDashboard();
+        if (panelId === "settings") loadAppVersion();
       }
 
       function updateBackButton() {
@@ -1059,7 +1358,7 @@
         }
         btnCancel.addEventListener("click", () => {
           hideOverlay("regenPasswordOverlay");
-          activatePanel("settings");
+          restoreLoginOrPanel();
         });
         return true;
       };
@@ -1119,6 +1418,7 @@
         btnCancel.addEventListener("click", () => {
           pendingMissingItemId = null;
           hideOverlay("removeLogOverlay");
+          restoreLoginOrPanel();
         });
 
         btnConfirm.addEventListener("click", async () => {
@@ -1134,25 +1434,44 @@
       const setupOk3 = setupRegenConfirm();
       const setupOk4 = setupMissingLogDeletion();
 
+      const setupPasswordVisibility = () => {
+        document.querySelectorAll(".input-toggle").forEach((button) => {
+          const targetId = button.dataset.target;
+          const input = targetId ? document.getElementById(targetId) : null;
+          if (!input) return;
+
+          button.addEventListener("click", () => {
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            button.setAttribute("aria-label", isHidden ? "Hide" : "Show");
+            button.textContent = isHidden ? "Hide" : "Show";
+            input.focus();
+          });
+        });
+      };
+
+      setupPasswordVisibility();
+
       document
         .getElementById("btnCloseRecoveryCodes")
         .addEventListener("click", () => {
           hideOverlay("recoveryCodesOverlay");
           const appShell = document.getElementById("appShell");
           if (
-            !appShell ||
-            appShell.classList.contains("hidden") ||
-            appShell.style.display === "none"
+            appShell &&
+            !appShell.classList.contains("hidden") &&
+            appShell.style.display !== "none"
           ) {
-            showDashboard();
-          } else {
             activatePanel(currentPanelId);
+          } else {
+            showDashboard();
           }
         });
 
       // ── Dashboard ──
       let countdownInterval = null;
       let pendingMissingItemId = null;
+      const selectedItemIds = new Set();
 
       async function refreshDashboard() {
         if (!window.fortilock) return;
@@ -1201,12 +1520,22 @@
         const container = document.getElementById("itemsList");
         const empty = document.getElementById("emptyState");
 
+        if (selectedItemIds.size > 0 && items && items.length > 0) {
+          const currentItemIds = new Set(items.map((item) => item.id));
+          selectedItemIds.forEach((id) => {
+            if (!currentItemIds.has(id)) {
+              selectedItemIds.delete(id);
+            }
+          });
+        }
+
         if (!items || items.length === 0) {
-          container.innerHTML = "";
-          empty.style.display = "block";
+          if (container) container.innerHTML = "";
+          if (empty) empty.style.display = "block";
           return;
         }
-        empty.style.display = "none";
+
+        if (empty) empty.style.display = "none";
 
         container.innerHTML = items
           .map((item) => {
@@ -1225,12 +1554,21 @@
               statusBadge = '<span class="badge badge-locked">Missing</span>';
             } else if (!isUnlocked) {
               statusBadge = '<span class="badge badge-locked">Locked</span>';
+            } else if (item.preventAutoLock) {
+              statusBadge =
+                '<span class="badge badge-unlocked">Unlocked (auto-lock blocked)</span>';
             } else if (countdown) {
-              statusBadge = `<span class="badge badge-countdown">⏱ ${countdown}</span>`;
+              statusBadge = `<span class="badge badge-countdown" title="This item is unlocked and will auto-lock after the countdown finishes. To prevent auto-lock for this item, enable Prevent auto-lock below.">⏱ ${countdown}</span>`;
             } else {
               statusBadge =
                 '<span class="badge badge-unlocked">Unlocked</span>';
             }
+
+            const preventAutoLockControl = isUnlocked
+              ? `<div class="card-footer"><label class="prevent-auto-lock" title="Skip auto-lock for this item when unlocked."><input type="checkbox" class="prevent-auto-lock-checkbox" data-item-id="${item.id}" ${
+                  item.preventAutoLock ? "checked" : ""
+                } /><span>Prevent auto-lock</span></label></div>`
+              : "";
 
             let actionBtn = "";
             if (isMissing) {
@@ -1241,10 +1579,18 @@
               actionBtn = `<button class="btn btn-sm btn-primary item-action-button" data-action="unlock" data-item-id="${item.id}" title="Unlock this item and allow it to run">Unlock</button>`;
             }
 
+            const checkedAttr = selectedItemIds.has(item.id) ? "checked" : "";
             return `
-            <div class="card">
+            <div class="card ${checkedAttr ? "selected" : ""}">
               <div class="card-header">
                 <div>
+                  <input
+                    type="checkbox"
+                    class="item-select"
+                    data-item-id="${item.id}"
+                    ${checkedAttr}
+                    title="Select this item to lock with the button"
+                  />
                   <span class="type-icon">${typeBadge}</span>
                   <strong>${item.originalPath.split("\\").pop()}</strong>
                   ${statusBadge}
@@ -1252,12 +1598,16 @@
                 <div class="btn-group">${actionBtn}</div>
               </div>
               <div class="card-path">${item.originalPath}</div>
+              ${preventAutoLockControl}
             </div>
           `;
           })
           .join("");
 
         attachItemActionHandlers();
+        attachItemSelectionHandlers();
+        attachPreventAutoLockHandlers();
+        updateDashboardActionButtons(items.length, selectedItemIds.size);
       }
 
       function attachItemActionHandlers() {
@@ -1314,11 +1664,98 @@
         }
       }
 
+      function attachItemSelectionHandlers() {
+        document.querySelectorAll(".item-select").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            const itemId = checkbox.dataset.itemId;
+            if (!itemId) return;
+            if (checkbox.checked) {
+              selectedItemIds.add(itemId);
+            } else {
+              selectedItemIds.delete(itemId);
+            }
+            checkbox
+              .closest(".card")
+              ?.classList.toggle("selected", checkbox.checked);
+            updateDashboardActionButtons(
+              document.querySelectorAll(".card").length,
+              selectedItemIds.size,
+            );
+          });
+        });
+      }
+
+      function attachPreventAutoLockHandlers() {
+        document
+          .querySelectorAll(".prevent-auto-lock-checkbox")
+          .forEach((checkbox) => {
+            checkbox.addEventListener("change", async () => {
+              const itemId = checkbox.dataset.itemId;
+              if (!itemId || !window.fortilock) return;
+              const enabled = checkbox.checked;
+              const result = await window.fortilock.setItemAutoLock(
+                itemId,
+                enabled,
+              );
+              if (!result || !result.ok) {
+                showToast(
+                  result?.error || "Failed to update auto-lock setting.",
+                );
+                checkbox.checked = !enabled;
+                return;
+              }
+              showToast(
+                enabled
+                  ? "Auto-lock is disabled for this item."
+                  : "Auto-lock is enabled for this item.",
+              );
+            });
+          });
+      }
+
+      function setSelectionForAll(selectAll) {
+        const checkboxes = Array.from(
+          document.querySelectorAll(".item-select"),
+        );
+        selectedItemIds.clear();
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = selectAll;
+          const itemId = checkbox.dataset.itemId;
+          if (selectAll && itemId) {
+            selectedItemIds.add(itemId);
+          }
+          checkbox.closest(".card")?.classList.toggle("selected", selectAll);
+        });
+        updateDashboardActionButtons(
+          document.querySelectorAll(".card").length,
+          selectedItemIds.size,
+        );
+      }
+
       async function unlockItemNow(itemId) {
         if (!window.fortilock) return;
         const ok = await window.fortilock.unlockItem(itemId);
         if (!ok) {
           showToast("Failed to open unlock prompt.");
+        }
+      }
+
+      function updateDashboardActionButtons(itemCount, selectionCount) {
+        const lockAllButton = document.getElementById("btnLockAll");
+        const unlockAllButton = document.getElementById("btnUnlockAll");
+        if (lockAllButton) {
+          lockAllButton.disabled = itemCount === 0;
+          lockAllButton.textContent =
+            selectionCount > 0
+              ? `Lock Selected (${selectionCount})`
+              : "Lock All Now";
+        }
+        if (unlockAllButton) {
+          unlockAllButton.disabled = itemCount === 0;
+          unlockAllButton.textContent =
+            selectionCount > 0
+              ? `Unlock Selected (${selectionCount})`
+              : "Unlock All";
         }
       }
 
@@ -1333,13 +1770,118 @@
         .getElementById("btnLockAll")
         .addEventListener("click", async () => {
           if (!window.fortilock) return;
-          showToast("Locking all items...");
-          const ok = await window.fortilock.lockAllNow();
+          const itemCount = document.querySelectorAll(".card").length;
+          if (itemCount === 0) {
+            showToast("There are no items in the dashboard to lock.");
+            return;
+          }
+
+          const selectedIds = Array.from(selectedItemIds);
+          showToast(
+            selectedIds.length > 0
+              ? `Locking ${selectedIds.length} selected item(s)...`
+              : "Locking all items...",
+          );
+
+          const ok = await window.fortilock.lockAllNow(
+            selectedIds.length > 0 ? selectedIds : undefined,
+          );
           if (ok) {
+            if (selectedIds.length > 0) {
+              selectedItemIds.clear();
+            }
             refreshDashboard();
-            showToast("All items locked.");
+            showToast(
+              selectedIds.length > 0
+                ? `Selected items locked (${selectedIds.length}).`
+                : "All items locked.",
+            );
           } else {
-            showToast("Failed to lock all items.");
+            showToast("Failed to lock items.");
+          }
+        });
+
+      document
+        .getElementById("btnUnlockAll")
+        .addEventListener("click", async () => {
+          const itemCount = document.querySelectorAll(".card").length;
+          if (itemCount === 0) {
+            showToast("There are no items in the dashboard to unlock.");
+            return;
+          }
+
+          const selectedIds = Array.from(selectedItemIds);
+          const description = document.getElementById("unlockAllDescription");
+          if (description) {
+            description.textContent =
+              selectedIds.length > 0
+                ? `Unlock ${selectedIds.length} selected item(s) with your master password.`
+                : "Unlock all managed dashboard items with your master password.";
+          }
+          showOverlay("unlockAllOverlay");
+        });
+
+      const btnSelectAll = document.getElementById("btnSelectAll");
+      const btnUnselectAll = document.getElementById("btnUnselectAll");
+      if (btnSelectAll) {
+        btnSelectAll.addEventListener("click", () => setSelectionForAll(true));
+      }
+      if (btnUnselectAll) {
+        btnUnselectAll.addEventListener("click", () =>
+          setSelectionForAll(false),
+        );
+      }
+
+      document
+        .getElementById("btnLockAllTooltip")
+        .addEventListener("click", () => {
+          showToast(
+            "Lock All only affects FortiLock-managed dashboard items, not all files on your PC.",
+          );
+        });
+
+      document
+        .getElementById("btnCancelUnlockAll")
+        .addEventListener("click", () => {
+          const passwordInput = document.getElementById("unlockAllPwd");
+          if (passwordInput) {
+            passwordInput.value = "";
+          }
+          hideOverlay("unlockAllOverlay");
+        });
+
+      document
+        .getElementById("btnConfirmUnlockAll")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const passwordInput = document.getElementById("unlockAllPwd");
+          if (!passwordInput) return;
+
+          const password = passwordInput.value;
+          if (!password) {
+            showToast("Enter your master password to unlock.");
+            return;
+          }
+
+          const selectedIds = Array.from(selectedItemIds);
+          const result = await window.fortilock.unlockAllNow(
+            password,
+            selectedIds.length > 0 ? selectedIds : undefined,
+          );
+          if (result.ok) {
+            if (selectedIds.length > 0) {
+              selectedItemIds.clear();
+            }
+            hideOverlay("unlockAllOverlay");
+            passwordInput.value = "";
+            refreshDashboard();
+            showToast(
+              selectedIds.length > 0
+                ? `Unlocked ${selectedIds.length} selected item(s).`
+                : "Unlocked all managed items.",
+            );
+          } else {
+            showToast(result.error || "Failed to unlock items.");
           }
         });
 
@@ -1445,6 +1987,43 @@
           }
         });
 
+      document
+        .getElementById("btnCheckUpdates")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const result = await window.fortilock.checkForUpdates();
+          if (!result || !result.ok) {
+            return showToast(result?.error || "Update check failed.");
+          }
+
+          if (result.updateAvailable) {
+            showToast(
+              `Update available: ${result.latestVersion}. Opening release page...`,
+            );
+          } else {
+            showToast(
+              `You are running the latest version (${result.currentVersion}).`,
+            );
+          }
+        });
+
+      async function loadAppVersion() {
+        const appVersionEl = document.getElementById("appVersion");
+        if (!appVersionEl) return;
+        if (!window.fortilock || !window.fortilock.getAppVersion) {
+          appVersionEl.textContent = "Unknown";
+          return;
+        }
+
+        try {
+          const version = await window.fortilock.getAppVersion();
+          appVersionEl.textContent = version || "Unknown";
+        } catch (err) {
+          console.error("Failed to load app version:", err);
+          appVersionEl.textContent = "Unknown";
+        }
+      }
+
       // ── Audit Log ──
       async function loadAuditLog() {
         if (!window.fortilock) return;
@@ -1474,6 +2053,7 @@
               <td>${time}</td>
               <td>${log.action || "—"}</td>
               <td>${log.type || "—"}</td>
+              <td>${log.itemName || "—"}</td>
               <td class="${statusClass}">${log.status || "—"}</td>
               <td>${log.details || ""}</td>
             </tr>
@@ -1507,6 +2087,7 @@
               document.getElementById("appShell").style.display = "flex";
               renderItems(data.items);
               populateSettings(data.config);
+              await loadAppVersion();
               startCountdownRefresh();
             }
           } catch {
@@ -1519,6 +2100,7 @@
       }
 
       init();
+      activatePanel("items");
     </script>
   </body>
 </html>

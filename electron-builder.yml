@@ -7,16 +7,9 @@ files:
   - dist/**/*
   - node_modules/**/*
   - package.json
-
-win:
-  target:
-    - nsis
-    - portable
-  certificateFile: null
-  certificatePassword: null
-  signingHashAlgorithms:
-    - sha256
-  sign: null
+extraResources:
+  - from: assets/icon.png
+    to: assets/icon.png
 
 nsis:
   oneClick: false

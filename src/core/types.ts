@@ -6,10 +6,11 @@ export interface WrappedKey {
 
 export interface LockedItem {
   id: string; // UUID
-  type: 'file' | 'folder' | 'app';
+  type: "file" | "folder" | "app";
   originalPath: string;
   alkPath: string; // path to the encrypted .alk file
-  status: 'locked' | 'unlocked';
+  status: "locked" | "unlocked";
+  preventAutoLock?: boolean;
 }
 
 export interface RecoveryKeyEntry {

@@ -14,6 +14,7 @@ export interface AuditEntry {
   type: AuditType;
   action: AuditAction;
   status: AuditStatus;
+  itemName?: string;
   details?: string;
 }
 

@@ -7,10 +7,12 @@ import {
   Menu,
   globalShortcut,
   nativeImage,
+  shell,
 } from "electron";
 import AutoLaunch from "auto-launch";
 import path from "node:path";
 import fs from "node:fs/promises";
+import https from "node:https";
 import { randomUUID } from "node:crypto";
 import { ConfigManager } from "../core/config";
 import { Vault } from "../core/vault";
@@ -66,13 +68,24 @@ function createWindow() {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
+      devTools: false,
     },
   });
 
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
-  // Open DevTools automatically to help debug UI issues
-  mainWindow.webContents.openDevTools();
+  // Disable opening DevTools by keyboard shortcuts
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    // Disable F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J
+    if (
+      input.key === "F12" ||
+      (input.control && input.shift && input.key.toLowerCase() === "i") ||
+      (input.control && input.shift && input.key.toLowerCase() === "c") ||
+      (input.control && input.shift && input.key.toLowerCase() === "j")
+    ) {
+      event.preventDefault();
+    }
+  });
 
   // Forward renderer console logs to main process terminal
   mainWindow.webContents.on(
@@ -256,6 +269,13 @@ async function handleProcessWatcherPrompt(
   });
 }
 
+function getAuditItemName(item: any) {
+  if (item.originalPath) {
+    return path.basename(item.originalPath);
+  }
+  return item.id || "Unknown";
+}
+
 async function unlockStoredItem(itemId: string, password: string) {
   const vaultData = await vault.readVault();
   const verified = await verifyPassword(
@@ -292,6 +312,7 @@ async function unlockStoredItem(itemId: string, password: string) {
         type: item.type,
         action: "unlock",
         status: "failure",
+        itemName: getAuditItemName(item),
         details: "Encrypted file missing",
       });
       return { ok: false, error: "Encrypted file missing" };
@@ -317,9 +338,110 @@ async function unlockStoredItem(itemId: string, password: string) {
     type: item.type,
     action: "unlock",
     status: "success",
+    itemName: getAuditItemName(item),
+    details: "Unlocked via dashboard prompt",
   });
 
   return { ok: true };
+}
+
+async function unlockStoredItems(password: string, itemIds?: string[] | null) {
+  const vaultData = await vault.readVault();
+  const verified = await verifyPassword(
+    password,
+    Buffer.from(vaultData.passwordHash, "hex"),
+    Buffer.from(vaultData.passwordSalt, "hex"),
+  );
+
+  if (!verified) {
+    return { ok: false, error: "Invalid password" };
+  }
+
+  const masterKey = await deriveMasterKey(
+    password,
+    Buffer.from(vaultData.masterKeySalt, "hex"),
+  );
+  currentVaultKey = unwrapVaultKey(masterKey, vaultData.wrappedVaultKey);
+  masterKey.fill(0);
+
+  sessionManager.setVaultKey(currentVaultKey);
+
+  const items = vaultData.items.filter((item: any) =>
+    !itemIds || itemIds.length === 0 ? true : itemIds.includes(item.id),
+  );
+
+  if (items.length === 0) {
+    return { ok: false, error: "No items selected" };
+  }
+
+  let successCount = 0;
+  for (const item of items) {
+    const result = await attemptUnlockDashboardItem(item);
+    if (result.success) {
+      successCount += 1;
+    }
+  }
+
+  await vault.writeVault(vaultData);
+  return {
+    ok: successCount > 0,
+    error: successCount > 0 ? undefined : "Failed to unlock selected items",
+  };
+}
+
+async function attemptUnlockDashboardItem(item: any) {
+  const itemName = getAuditItemName(item);
+  const wasUnlocked = item.status === "unlocked";
+
+  try {
+    if (item.alkPath) {
+      await fs.access(item.alkPath as string);
+    }
+
+    await unlockDashboardItem(item, wasUnlocked);
+
+    sessionManager.addSession(item.id);
+    await auditLogger.log({
+      id: item.id,
+      type: item.type,
+      action: "unlock",
+      status: "success",
+      itemName,
+      details: wasUnlocked
+        ? "Already unlocked"
+        : "Unlocked via dashboard prompt",
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    await auditLogger.log({
+      id: item.id,
+      type: item.type,
+      action: "unlock",
+      status: "failure",
+      itemName,
+      details: error instanceof Error ? error.message : String(error),
+    });
+    return { success: false };
+  }
+}
+
+async function unlockDashboardItem(item: any, wasUnlocked: boolean) {
+  const vaultKey = currentVaultKey;
+  if (!vaultKey) {
+    throw new Error("Vault key unavailable");
+  }
+
+  if (item.type === "file" && item.alkPath && !wasUnlocked) {
+    await unlockFile(item.alkPath, item.originalPath, vaultKey);
+    item.status = "unlocked";
+  } else if (item.type === "folder" && item.alkPath && !wasUnlocked) {
+    await unlockFolder(item.alkPath, item.originalPath, vaultKey);
+    item.status = "unlocked";
+  } else if (item.type === "app" && !wasUnlocked) {
+    await watcher.unlockApp(item.id);
+    item.status = "unlocked";
+  }
 }
 
 async function completePromptSuccess(itemId: string) {
@@ -379,6 +501,7 @@ async function removeVaultItemByPassword(itemId: string, password: string) {
 app.commandLine.appendSwitch("disable-gpu");
 app.commandLine.appendSwitch("disable-gpu-compositing");
 app.commandLine.appendSwitch("disable-dev-shm-usage");
+app.setAppUserModelId("com.fortilock.app");
 
 app.whenReady().then(async () => {
   // 1. Initialize Paths & Config
@@ -419,11 +542,26 @@ app.whenReady().then(async () => {
   createWindow();
 
   // 4. Tray Icon Setup
-  let trayIconPath = path.join(__dirname, "../../assets/icon.png");
-  try {
-    await fs.access(trayIconPath);
+  const trayIconCandidates = [
+    path.join(__dirname, "../../assets/icon.png"),
+    path.join(process.resourcesPath, "assets", "icon.png"),
+  ];
+
+  let trayIconPath: string | null = null;
+  for (const candidate of trayIconCandidates) {
+    try {
+      await fs.access(candidate);
+      trayIconPath = candidate;
+      break;
+    } catch {
+      // ignore missing candidate
+    }
+  }
+
+  if (trayIconPath) {
     tray = new Tray(trayIconPath);
-  } catch {
+  } else {
+    console.warn("Tray icon not found in expected paths", trayIconCandidates);
     tray = new Tray(nativeImage.createEmpty());
   }
 
@@ -763,15 +901,28 @@ app.whenReady().then(async () => {
     }
   });
 
-  ipcMain.handle("lock-all-now", async () => {
+  ipcMain.handle("lock-all-now", async (_, selectedIds?: string[]) => {
     try {
-      await sessionManager.lockAllNow();
+      await sessionManager.lockAllNow(selectedIds);
       return true;
     } catch (err) {
       console.error(err);
       return false;
     }
   });
+
+  ipcMain.handle(
+    "unlock-all-now",
+    async (_, password: string, selectedIds?: string[]) => {
+      try {
+        return await unlockStoredItems(password, selectedIds);
+      } catch (err) {
+        console.error(err);
+        const message = err instanceof Error ? err.message : String(err);
+        return { ok: false, error: message || "Failed to unlock items" };
+      }
+    },
+  );
 
   ipcMain.handle("dialog:openFile", async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -840,6 +991,26 @@ app.whenReady().then(async () => {
     }
   });
 
+  ipcMain.handle(
+    "set-item-auto-lock",
+    async (_, itemId: string, preventAutoLock: boolean) => {
+      try {
+        const vaultData = await vault.readVault();
+        const item = vaultData.items.find((i: any) => i.id === itemId);
+        if (!item) {
+          return { ok: false, error: "Item not found" };
+        }
+
+        item.preventAutoLock = preventAutoLock;
+        await vault.writeVault(vaultData);
+        return { ok: true };
+      } catch (err: any) {
+        console.error("Failed to update item auto-lock setting:", err);
+        return { ok: false, error: err?.message || "Failed to update setting" };
+      }
+    },
+  );
+
   ipcMain.handle("save-config", async (_, newConfig) => {
     const oldHotkey = configManager.config.globalHotkey;
     await configManager.save(newConfig);
@@ -871,6 +1042,119 @@ app.whenReady().then(async () => {
       return lines.map((l) => JSON.parse(l)).reverse(); // Most recent first
     } catch {
       return [];
+    }
+  });
+
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+
+  const compareVersions = (a: string, b: string): number => {
+    const parse = (value: string) =>
+      value
+        .replace(/^v/, "")
+        .split(".")
+        .map((part) => Number(part) || 0);
+
+    const aParts = parse(a);
+    const bParts = parse(b);
+    const len = Math.max(aParts.length, bParts.length);
+
+    for (let i = 0; i < len; i++) {
+      const aNum = aParts[i] ?? 0;
+      const bNum = bParts[i] ?? 0;
+      if (aNum > bNum) return 1;
+      if (aNum < bNum) return -1;
+    }
+    return 0;
+  };
+
+  const parseReleaseResponse = (
+    res: import("node:http").IncomingMessage,
+    data: string,
+    resolve: (value: { tagName: string; htmlUrl: string }) => void,
+    reject: (reason?: any) => void,
+  ) => {
+    if (res.statusCode !== 200) {
+      reject(new Error(`GitHub release check failed: ${res.statusCode}`));
+      return;
+    }
+
+    let json;
+    try {
+      json = JSON.parse(data);
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    if (!json.tag_name || !json.html_url) {
+      reject(new Error("Invalid release response"));
+      return;
+    }
+
+    resolve({ tagName: json.tag_name, htmlUrl: json.html_url });
+  };
+
+  const fetchLatestReleaseInfo = async (): Promise<{
+    tagName: string;
+    htmlUrl: string;
+  }> => {
+    let data = "";
+
+    const handleReleaseData = (
+      chunk: import("node:buffer").Buffer | string,
+    ) => {
+      data += chunk;
+    };
+
+    const handleReleaseEnd = (
+      res: import("node:http").IncomingMessage,
+      resolve: (value: { tagName: string; htmlUrl: string }) => void,
+      reject: (reason?: any) => void,
+    ) => {
+      parseReleaseResponse(res, data, resolve, reject);
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = https.get(
+        "https://api.github.com/repos/Aditya-Sharma-CapG/fortilock/releases/latest",
+        {
+          headers: {
+            "User-Agent": "FortiLock",
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+        (res) => {
+          res.on("data", handleReleaseData);
+          res.on("end", handleReleaseEnd.bind(null, res, resolve, reject));
+        },
+      );
+      req.on("error", reject);
+    });
+  };
+
+  ipcMain.handle("check-for-updates", async () => {
+    try {
+      const currentVersion = app.getVersion();
+      const latest = await fetchLatestReleaseInfo();
+      const latestVersion = latest.tagName.replace(/^v/, "");
+      const updateAvailable =
+        compareVersions(latestVersion, currentVersion) === 1;
+
+      if (updateAvailable) {
+        shell.openExternal(latest.htmlUrl);
+      }
+
+      return {
+        ok: true,
+        updateAvailable,
+        currentVersion,
+        latestVersion,
+        releaseUrl: latest.htmlUrl,
+      };
+    } catch (err: any) {
+      return { ok: false, error: err?.message || "Failed to check updates" };
     }
   });
 

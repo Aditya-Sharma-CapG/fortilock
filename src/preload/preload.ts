@@ -10,12 +10,19 @@ contextBridge.exposeInMainWorld("fortilock", {
     ipcRenderer.invoke("create-vault", password),
   unlockVault: (password: string) =>
     ipcRenderer.invoke("unlock-vault", password),
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
   addFile: (filePath: string) => ipcRenderer.invoke("add-file", filePath),
   addFolder: (folderPath: string) =>
     ipcRenderer.invoke("add-folder", folderPath),
   addApp: (exePath: string) => ipcRenderer.invoke("add-app", exePath),
   unlockItem: (id: string) => ipcRenderer.invoke("unlock-item", id),
-  lockAllNow: () => ipcRenderer.invoke("lock-all-now"),
+  lockAllNow: (selectedIds?: string[]) =>
+    ipcRenderer.invoke("lock-all-now", selectedIds),
+  unlockAllNow: (password: string, selectedIds?: string[]) =>
+    ipcRenderer.invoke("unlock-all-now", password, selectedIds),
+  setItemAutoLock: (itemId: string, preventAutoLock: boolean) =>
+    ipcRenderer.invoke("set-item-auto-lock", itemId, preventAutoLock),
   getDashboardData: () => ipcRenderer.invoke("get-dashboard-data"),
   saveConfig: (config: any) => ipcRenderer.invoke("save-config", config),
   getAuditLogs: () => ipcRenderer.invoke("get-audit-logs"),
