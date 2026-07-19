@@ -1,0 +1,1524 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FortiLock</title>
+    <style>
+      :root {
+        --bg-primary: #0d1117;
+        --bg-card: #161b22;
+        --bg-input: #21262d;
+        --border: #30363d;
+        --text-primary: #e6edf3;
+        --text-secondary: #8b949e;
+        --accent: #58a6ff;
+        --accent-hover: #79c0ff;
+        --green: #3fb950;
+        --red: #f85149;
+        --orange: #d29922;
+        --radius: 8px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+      }
+
+      /* Layout */
+      .app-shell {
+        display: flex;
+        height: 100vh;
+      }
+      .sidebar {
+        width: 220px;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border);
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-brand {
+        padding: 0 20px 20px;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--accent);
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-nav {
+        flex: 1;
+        padding: 12px 0;
+      }
+      .sidebar-nav button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 10px 20px;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.15s;
+      }
+      .sidebar-nav button:hover {
+        color: var(--text-primary);
+        background: var(--bg-input);
+      }
+      .sidebar-nav button.active {
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.1);
+        border-left: 3px solid var(--accent);
+      }
+      .main-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 32px;
+      }
+
+      /* Cards & Sections */
+      .section-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .button-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .mt-12 {
+        margin-top: 12px;
+      }
+      .monospace-card {
+        font-family: monospace;
+        font-size: 14px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: var(--text-primary) !important;
+        background: var(--bg-input) !important;
+        line-height: 1.6;
+        min-height: 150px;
+        padding: 12px !important;
+        border: 1px solid var(--border) !important;
+        overflow-y: auto;
+        max-height: 300px;
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .card-path {
+        font-size: 13px;
+        color: var(--text-secondary);
+        word-break: break-all;
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge-locked {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--red);
+      }
+      .badge-unlocked {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .badge-countdown {
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--orange);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 6px 14px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.15s;
+      }
+      .btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+      .btn-danger {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .btn-danger:hover {
+        background: rgba(248, 81, 73, 0.15);
+      }
+      .btn-sm {
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+
+      /* Forms */
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .form-row {
+        display: flex;
+        gap: 16px;
+      }
+      .form-row .form-group {
+        flex: 1;
+      }
+
+      .hidden {
+        display: none;
+      }
+      .full-width {
+        width: 100%;
+      }
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .form-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .form-checkbox-label input[type="checkbox"] {
+        margin: 0;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .card-spaced {
+        margin-top: 24px;
+      }
+      .section-subtitle {
+        margin-bottom: 16px;
+      }
+      .card-table {
+        overflow-x: auto;
+      }
+      .type-icon {
+        margin-right: 6px;
+      }
+
+      /* Audit Log Table */
+      .log-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .log-table th {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+      .log-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .log-table tr:hover {
+        background: var(--bg-input);
+      }
+      .log-status-success {
+        color: var(--green);
+      }
+      .log-status-failure {
+        color: var(--red);
+      }
+
+      /* Panels */
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
+
+      /* Onboarding overlay */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-primary);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .overlay-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+        width: 420px;
+        max-width: 90vw;
+      }
+      .overlay-box h2 {
+        margin-bottom: 8px;
+      }
+      .overlay-box p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .overlay .warn {
+        color: var(--orange);
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+      }
+      .empty-state p {
+        margin-bottom: 16px;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 12px 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        font-size: 13px;
+        z-index: 200;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Onboarding (first-run only) -->
+    <div class="overlay hidden" id="onboarding">
+      <div class="overlay-box">
+        <h2>Welcome to FortiLock</h2>
+        <p>
+          Set a master password to encrypt your vault. This password protects
+          all your locked files, folders, and apps.
+        </p>
+        <div class="warn">
+          ⚠ Recovery codes are generated after vault creation. Save them in a
+          secure place; each code can be used only once.
+        </div>
+        <div class="form-group">
+          <label for="masterPwd">Master Password</label>
+          <input
+            type="password"
+            id="masterPwd"
+            placeholder="Choose a strong password"
+          />
+        </div>
+        <div class="form-group">
+          <label for="confirmPwd">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPwd"
+            placeholder="Re-enter password"
+          />
+        </div>
+        <div class="form-group">
+          <label for="confirmText"
+            >Type <strong>CONFIRM</strong> to proceed</label
+          >
+          <input type="text" id="confirmText" placeholder="CONFIRM" />
+        </div>
+        <button class="btn btn-primary full-width" id="btnSetup">
+          Create Vault
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="vaultUnlock">
+      <div class="overlay-box">
+        <h2>Unlock FortiLock</h2>
+        <p>
+          Enter your master password to unlock the vault and access locked
+          items.
+        </p>
+        <div class="form-group">
+          <label for="vaultPwd">Master Password</label>
+          <input
+            type="password"
+            id="vaultPwd"
+            placeholder="Enter master password"
+          />
+        </div>
+        <button class="btn btn-primary full-width" id="btnUnlockVault">
+          Unlock Vault
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm full-width mt-12"
+          id="btnRecoverWithCode"
+        >
+          Recover with a recovery code
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="recoveryOverlay">
+      <div class="overlay-box">
+        <h2>Recover Vault</h2>
+        <p>
+          If you forgot your master password, enter one of your one-time
+          recovery codes to unlock the vault.
+        </p>
+        <div class="form-group">
+          <label for="recoveryCode">Recovery Code</label>
+          <input
+            type="text"
+            id="recoveryCode"
+            placeholder="Enter recovery code"
+          />
+        </div>
+        <div class="btn-group button-row">
+          <button type="button" class="btn" id="btnCancelRecovery">Back</button>
+          <button type="button" class="btn btn-primary" id="btnRedeemCode">
+            Redeem Code
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="passwordResetOverlay">
+      <div class="overlay-box">
+        <h2>Reset Master Password</h2>
+        <p>
+          Your vault has been recovered. Set a new master password now to finish
+          the recovery process.
+        </p>
+        <div class="form-group">
+          <label for="resetNewPwd">New Password</label>
+          <input
+            type="password"
+            id="resetNewPwd"
+            placeholder="Enter a new password"
+          />
+        </div>
+        <div class="form-group">
+          <label for="resetNewPwdConfirm">Confirm New Password</label>
+          <input
+            type="password"
+            id="resetNewPwdConfirm"
+            placeholder="Confirm new password"
+          />
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary full-width"
+          id="btnResetPassword"
+        >
+          Save New Password
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="recoveryCodesOverlay">
+      <div class="overlay-box">
+        <h2>Recovery Codes</h2>
+        <p>
+          These recovery codes can unlock your vault once. Save them securely.
+        </p>
+        <div class="card monospace-card" id="recoveryCodesList"></div>
+        <button
+          type="button"
+          class="btn btn-primary full-width"
+          id="btnCloseRecoveryCodes"
+        >
+          I have saved these codes
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="regenPasswordOverlay">
+      <div class="overlay-box">
+        <h2>Confirm Master Password</h2>
+        <p>Enter your current master password to regenerate recovery codes.</p>
+        <div class="form-group">
+          <label for="regenPwd">Master Password</label>
+          <input
+            type="password"
+            id="regenPwd"
+            placeholder="Enter master password"
+          />
+        </div>
+        <div class="btn-group button-row">
+          <button type="button" class="btn" id="btnCancelRegen">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnConfirmRegen">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="removeLogOverlay">
+      <div class="overlay-box">
+        <h2>Delete Missing Log</h2>
+        <p>
+          Enter your master password to remove this missing item from the
+          dashboard.
+        </p>
+        <div class="form-group">
+          <label for="removeLogPassword">Master Password</label>
+          <input
+            type="password"
+            id="removeLogPassword"
+            placeholder="Enter master password"
+          />
+        </div>
+        <div class="btn-group button-row">
+          <button type="button" class="btn" id="btnCancelRemoveLog">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" id="btnConfirmRemoveLog">
+            Delete log
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App Shell -->
+    <div class="app-shell hidden" id="appShell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">🛡 FortiLock</div>
+        <nav class="sidebar-nav">
+          <button class="active" data-panel="items">Locked Items</button>
+          <button data-panel="settings">Settings</button>
+          <button data-panel="audit">Audit Log</button>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <!-- PANEL: Items -->
+        <div class="panel active" id="panel-items">
+          <div class="panel-header">
+            <h1 class="section-title">Locked Items</h1>
+            <div class="btn-group">
+              <button
+                class="btn"
+                id="btnAddFile"
+                title="Lock a file so it is encrypted and protected"
+              >
+                + File
+              </button>
+              <button
+                class="btn"
+                id="btnAddFolder"
+                title="Lock a folder and its contents"
+              >
+                + Folder
+              </button>
+              <button
+                class="btn"
+                id="btnAddApp"
+                title="Lock an app so it prompts before launching"
+              >
+                + App
+              </button>
+              <button
+                class="btn btn-danger"
+                id="btnLockAll"
+                title="Lock every protected item immediately"
+              >
+                Lock All Now
+              </button>
+            </div>
+          </div>
+          <div id="itemsList"></div>
+          <div class="empty-state" id="emptyState">
+            <p>
+              No locked items yet. Use the buttons above to lock a file or
+              folder.
+            </p>
+          </div>
+        </div>
+
+        <!-- PANEL: Settings -->
+        <div class="panel" id="panel-settings">
+          <div class="panel-header">
+            <button
+              class="btn btn-icon btn-back-panel"
+              title="Back to previous page"
+              type="button"
+            >
+              ← Back
+            </button>
+            <h1 class="section-title">Settings</h1>
+          </div>
+          <div class="card">
+            <h3 class="section-subtitle">Session & Security</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="idleTimeout">Idle Timeout (minutes)</label>
+                <input
+                  type="number"
+                  id="idleTimeout"
+                  min="1"
+                  max="1440"
+                  value="15"
+                  title="Locks protected items after this many minutes of inactivity"
+                />
+              </div>
+              <div class="form-group">
+                <label for="globalHotkey">Global Hotkey (Lock All)</label>
+                <input
+                  type="text"
+                  id="globalHotkey"
+                  value="CommandOrControl+Alt+L"
+                  title="Use this shortcut to lock everything instantly"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-checkbox-label">
+                <input
+                  type="checkbox"
+                  id="autostart"
+                  title="Start FortiLock automatically when Windows signs in"
+                />
+                <span>Launch FortiLock on system startup</span>
+              </label>
+            </div>
+            <button
+              class="btn btn-primary"
+              id="btnSaveSettings"
+              title="Save and apply the current security settings"
+            >
+              Save Settings
+            </button>
+          </div>
+
+          <div class="card card-spaced">
+            <h3 class="section-subtitle">Change Master Password</h3>
+            <div class="form-group">
+              <label for="currentPwd">Current Password</label>
+              <input
+                type="password"
+                id="currentPwd"
+                title="Enter your current vault password"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPwd">New Password</label>
+                <input
+                  type="password"
+                  id="newPwd"
+                  title="Enter a new master password of at least 8 characters"
+                />
+              </div>
+              <div class="form-group">
+                <label for="newPwdConfirm">Confirm New Password</label>
+                <input
+                  type="password"
+                  id="newPwdConfirm"
+                  title="Repeat your new password to confirm it"
+                />
+              </div>
+            </div>
+            <button
+              class="btn btn-danger"
+              id="btnChangePwd"
+              title="Change your master password for the vault"
+            >
+              Change Password
+            </button>
+          </div>
+
+          <div class="card card-spaced">
+            <h3 class="section-subtitle">Recovery Codes</h3>
+            <p>
+              Generate a new set of one-time recovery codes if your current set
+              is lost or expired.
+            </p>
+            <button
+              class="btn btn-primary"
+              id="btnRegenerateRecovery"
+              title="Generate a fresh set of one-time recovery codes"
+            >
+              Regenerate Recovery Codes
+            </button>
+          </div>
+        </div>
+
+        <!-- PANEL: Audit Log -->
+        <div class="panel" id="panel-audit">
+          <div class="panel-header">
+            <button
+              class="btn btn-icon btn-back-panel"
+              title="Back to previous page"
+              type="button"
+            >
+              ← Back
+            </button>
+            <h1 class="section-title">Audit Log</h1>
+          </div>
+          <div class="card card-table">
+            <table class="log-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Action</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+            <div class="empty-state" id="auditEmpty">
+              <p>No audit log entries yet.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // ── Helpers ──
+      function showToast(msg, duration = 3000) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), duration);
+      }
+
+      function formatCountdown(expiresAt) {
+        if (!expiresAt) return null;
+        const msLeft = expiresAt - performance.now();
+        if (msLeft <= 0) return null;
+        const secs = Math.floor(msLeft / 1000);
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m}m ${s.toString().padStart(2, "0")}s`;
+      }
+
+      function showOverlay(id) {
+        document.querySelectorAll(".overlay").forEach((el) => {
+          el.classList.add("hidden");
+          el.style.display = "none";
+        });
+        const overlay = document.getElementById(id);
+        if (overlay) {
+          overlay.classList.remove("hidden");
+          overlay.style.display = "flex";
+        }
+      }
+
+      function hideOverlay(id) {
+        const overlay = document.getElementById(id);
+        if (overlay) {
+          overlay.classList.add("hidden");
+          overlay.style.display = "none";
+        }
+      }
+
+      function restoreLoginOrPanel() {
+        const appShell = document.getElementById("appShell");
+        if (
+          !appShell ||
+          appShell.classList.contains("hidden") ||
+          appShell.style.display === "none"
+        ) {
+          const vaultUnlock = document.getElementById("vaultUnlock");
+          if (vaultUnlock) {
+            vaultUnlock.classList.remove("hidden");
+            vaultUnlock.style.display = "flex";
+          }
+        } else {
+          activatePanel(currentPanelId);
+        }
+      }
+
+      function showRecoveryCodes(codes) {
+        const list = document.getElementById("recoveryCodesList");
+        if (!list) {
+          console.error("recoveryCodesList element not found");
+          return;
+        }
+
+        list.textContent = "Loading recovery codes...";
+
+        if (!codes || !Array.isArray(codes) || codes.length === 0) {
+          console.error("Invalid codes:", codes);
+          list.textContent = "ERROR: No recovery codes available";
+          showOverlay("recoveryCodesOverlay");
+          return;
+        }
+
+        const formatted = codes
+          .map((code, index) => {
+            const codeStr = String(code).trim();
+            return `${index + 1}. ${codeStr}`;
+          })
+          .join("\n\n");
+
+        const rendered =
+          formatted.trim().length > 0
+            ? formatted
+            : "ERROR: Recovery codes could not be rendered.";
+        list.textContent = rendered;
+        list.style.display = "block";
+
+        showOverlay("recoveryCodesOverlay");
+      }
+
+      let currentPanelId = "items";
+      let lastPanelId = "items";
+
+      function activatePanel(panelId) {
+        if (!panelId) return;
+        if (panelId !== currentPanelId) {
+          lastPanelId = currentPanelId;
+          currentPanelId = panelId;
+        }
+
+        document.querySelectorAll(".sidebar-nav button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.panel === panelId);
+        });
+
+        document.querySelectorAll(".panel").forEach((p) => {
+          p.classList.toggle("active", p.id === `panel-${panelId}`);
+        });
+
+        updateBackButton();
+
+        if (panelId === "audit") loadAuditLog();
+        if (panelId === "items") refreshDashboard();
+      }
+
+      function updateBackButton() {
+        document.querySelectorAll(".btn-back-panel").forEach((button) => {
+          button.style.display =
+            currentPanelId === "items" ? "none" : "inline-flex";
+        });
+      }
+
+      // ── Navigation ──
+      document.querySelectorAll(".sidebar-nav button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          activatePanel(btn.dataset.panel);
+        });
+      });
+
+      document.querySelectorAll(".btn-back-panel").forEach((button) => {
+        button.addEventListener("click", () => {
+          activatePanel(lastPanelId || "items");
+        });
+      });
+
+      updateBackButton();
+
+      // ── Onboarding ──
+      document
+        .getElementById("btnSetup")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const pwd = document.getElementById("masterPwd").value;
+          const confirm = document.getElementById("confirmPwd").value;
+          const txt = document.getElementById("confirmText").value;
+          if (!pwd || pwd.length < 8)
+            return showToast("Password must be at least 8 characters.");
+          if (pwd !== confirm) return showToast("Passwords do not match.");
+          if (txt !== "CONFIRM")
+            return showToast("Please type CONFIRM to proceed.");
+
+          const result = await window.fortilock.createVault(pwd);
+          if (result.ok) {
+            // Hide onboarding using both methods for consistency
+            const onboardingEl = document.getElementById("onboarding");
+            if (onboardingEl) {
+              onboardingEl.classList.add("hidden");
+              onboardingEl.style.display = "none";
+            }
+
+            if (
+              result.recoveryCodes &&
+              Array.isArray(result.recoveryCodes) &&
+              result.recoveryCodes.length > 0
+            ) {
+              showRecoveryCodes(result.recoveryCodes);
+            } else {
+              showDashboard();
+            }
+          } else {
+            showToast(result.error || "Failed to create vault.");
+          }
+        });
+
+      function showDashboard() {
+        hideOverlay("recoveryCodesOverlay");
+        hideOverlay("recoveryOverlay");
+        hideOverlay("passwordResetOverlay");
+
+        const appShell = document.getElementById("appShell");
+        if (appShell) {
+          appShell.classList.remove("hidden");
+          appShell.style.display = "flex";
+        }
+
+        const onboardingEl = document.getElementById("onboarding");
+        if (onboardingEl) {
+          onboardingEl.classList.add("hidden");
+          onboardingEl.style.display = "none";
+        }
+
+        const vaultUnlockEl = document.getElementById("vaultUnlock");
+        if (vaultUnlockEl) {
+          vaultUnlockEl.classList.add("hidden");
+          vaultUnlockEl.style.display = "none";
+        }
+
+        showToast("Vault created successfully!");
+        refreshDashboard();
+        startCountdownRefresh();
+      }
+
+      document
+        .getElementById("btnUnlockVault")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const password = document.getElementById("vaultPwd").value;
+          if (!password) return showToast("Please enter your password.");
+
+          const result = await window.fortilock.unlockVault(password);
+          if (result.ok) {
+            document.getElementById("vaultUnlock").style.display = "none";
+            document.getElementById("appShell").style.display = "flex";
+            document.getElementById("vaultPwd").value = "";
+            showToast("Vault unlocked.");
+            refreshDashboard();
+            startCountdownRefresh();
+          } else {
+            showToast(result.error || "Invalid password.");
+          }
+        });
+
+      document
+        .getElementById("btnRecoverWithCode")
+        .addEventListener("click", () => {
+          showOverlay("recoveryOverlay");
+        });
+
+      document
+        .getElementById("btnCancelRecovery")
+        .addEventListener("click", () => {
+          hideOverlay("recoveryOverlay");
+          restoreLoginOrPanel();
+        });
+
+      document
+        .getElementById("btnRedeemCode")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const code = document.getElementById("recoveryCode").value.trim();
+          if (!code) return showToast("Enter a recovery code.");
+
+          const result = await window.fortilock.redeemRecoveryCode(code);
+          if (result.ok) {
+            hideOverlay("recoveryOverlay");
+            showOverlay("passwordResetOverlay");
+            showToast(
+              "Recovery code accepted. Set a new master password to finish.",
+            );
+          } else {
+            showToast(result.error || "Recovery code failed.");
+          }
+        });
+
+      document
+        .getElementById("btnResetPassword")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const newPwd = document.getElementById("resetNewPwd").value;
+          const confirmPwd =
+            document.getElementById("resetNewPwdConfirm").value;
+          if (!newPwd || newPwd.length < 8)
+            return showToast("New password must be at least 8 characters.");
+          if (newPwd !== confirmPwd)
+            return showToast("New passwords do not match.");
+
+          const result = await window.fortilock.resetPassword(newPwd);
+          if (result.ok) {
+            hideOverlay("passwordResetOverlay");
+            showToast("Master password reset successfully.");
+            document.getElementById("resetNewPwd").value = "";
+            document.getElementById("resetNewPwdConfirm").value = "";
+            refreshDashboard();
+          } else {
+            showToast(result.error || "Failed to reset password.");
+          }
+        });
+
+      // Setup regenerate recovery codes handlers
+      const setupRegenerateRecovery = () => {
+        const btnRegen = document.getElementById("btnRegenerateRecovery");
+        if (!btnRegen) {
+          console.error("[Setup] btnRegenerateRecovery button not found");
+          return false;
+        }
+        btnRegen.addEventListener("click", async () => {
+          showOverlay("regenPasswordOverlay");
+          const regenPwdEl = document.getElementById("regenPwd");
+          if (regenPwdEl) {
+            regenPwdEl.value = "";
+            setTimeout(() => regenPwdEl.focus(), 100);
+          }
+        });
+        return true;
+      };
+
+      const setupRegenCancel = () => {
+        const btnCancel = document.getElementById("btnCancelRegen");
+        if (!btnCancel) {
+          console.error("[Setup] btnCancelRegen button not found");
+          return false;
+        }
+        btnCancel.addEventListener("click", () => {
+          hideOverlay("regenPasswordOverlay");
+          activatePanel("settings");
+        });
+        return true;
+      };
+
+      const setupRegenConfirm = () => {
+        const btnConfirm = document.getElementById("btnConfirmRegen");
+        if (!btnConfirm) {
+          console.error("[Setup] btnConfirmRegen button not found");
+          return false;
+        }
+        btnConfirm.addEventListener("click", async () => {
+          const pwdEl = document.getElementById("regenPwd");
+          if (!pwdEl) {
+            console.error("[Event] regenPwd input not found");
+            return;
+          }
+          const pwd = pwdEl.value;
+          if (!pwd) {
+            showToast("Enter your master password.");
+            return;
+          }
+          try {
+            const result = await window.fortilock.regenerateRecoveryKeys(pwd);
+            if (result && result.ok) {
+              hideOverlay("regenPasswordOverlay");
+              pwdEl.value = "";
+              showRecoveryCodes(result.recoveryCodes || []);
+              showToast(
+                "New recovery codes generated and displayed. Save them securely.",
+              );
+            } else {
+              showToast(
+                result?.error || "Failed to regenerate recovery codes.",
+              );
+            }
+          } catch (err) {
+            console.error("[Event] Error regenerating recovery codes:", err);
+            showToast("Error: " + (err?.message || "Unknown error"));
+          }
+        });
+        return true;
+      };
+
+      const setupMissingLogDeletion = () => {
+        const btnCancel = document.getElementById("btnCancelRemoveLog");
+        const btnConfirm = document.getElementById("btnConfirmRemoveLog");
+
+        if (!btnCancel) {
+          console.error("[Setup] btnCancelRemoveLog button not found");
+          return false;
+        }
+        if (!btnConfirm) {
+          console.error("[Setup] btnConfirmRemoveLog button not found");
+          return false;
+        }
+
+        btnCancel.addEventListener("click", () => {
+          pendingMissingItemId = null;
+          hideOverlay("removeLogOverlay");
+        });
+
+        btnConfirm.addEventListener("click", async () => {
+          await removeMissingItemNow();
+        });
+
+        return true;
+      };
+
+      // Execute setup after DOM is ready
+      const setupOk1 = setupRegenerateRecovery();
+      const setupOk2 = setupRegenCancel();
+      const setupOk3 = setupRegenConfirm();
+      const setupOk4 = setupMissingLogDeletion();
+
+      document
+        .getElementById("btnCloseRecoveryCodes")
+        .addEventListener("click", () => {
+          hideOverlay("recoveryCodesOverlay");
+          const appShell = document.getElementById("appShell");
+          if (
+            !appShell ||
+            appShell.classList.contains("hidden") ||
+            appShell.style.display === "none"
+          ) {
+            showDashboard();
+          } else {
+            activatePanel(currentPanelId);
+          }
+        });
+
+      // ── Dashboard ──
+      let countdownInterval = null;
+      let pendingMissingItemId = null;
+
+      async function refreshDashboard() {
+        if (!window.fortilock) return;
+        try {
+          const data = await window.fortilock.getDashboardData();
+
+          if (!data.vaultExists) {
+            document.getElementById("appShell").style.display = "none";
+            document.getElementById("vaultUnlock").style.display = "none";
+            document.getElementById("onboarding").style.display = "flex";
+            return;
+          }
+
+          if (!data.vaultUnlocked) {
+            document.getElementById("appShell").style.display = "none";
+            document.getElementById("onboarding").style.display = "none";
+            document.getElementById("vaultUnlock").style.display = "flex";
+            populateSettings(data.config);
+            return;
+          }
+
+          const onboardingEl = document.getElementById("onboarding");
+          if (onboardingEl) {
+            onboardingEl.classList.add("hidden");
+            onboardingEl.style.display = "none";
+          }
+          const vaultUnlockEl = document.getElementById("vaultUnlock");
+          if (vaultUnlockEl) {
+            vaultUnlockEl.classList.add("hidden");
+            vaultUnlockEl.style.display = "none";
+          }
+          const appShell = document.getElementById("appShell");
+          if (appShell) {
+            appShell.classList.remove("hidden");
+            appShell.style.display = "flex";
+          }
+          renderItems(data.items);
+          populateSettings(data.config);
+          startCountdownRefresh();
+        } catch (e) {
+          console.error("Dashboard refresh failed:", e);
+        }
+      }
+
+      function renderItems(items) {
+        const container = document.getElementById("itemsList");
+        const empty = document.getElementById("emptyState");
+
+        if (!items || items.length === 0) {
+          container.innerHTML = "";
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+
+        container.innerHTML = items
+          .map((item) => {
+            const isUnlocked = item.status === "unlocked";
+            const isMissing = item.missing === true;
+            const countdown = isUnlocked
+              ? formatCountdown(item.expiresAt)
+              : null;
+
+            let typeBadge = "🖥";
+            if (item.type === "file") typeBadge = "📄";
+            else if (item.type === "folder") typeBadge = "📁";
+
+            let statusBadge;
+            if (isMissing) {
+              statusBadge = '<span class="badge badge-locked">Missing</span>';
+            } else if (!isUnlocked) {
+              statusBadge = '<span class="badge badge-locked">Locked</span>';
+            } else if (countdown) {
+              statusBadge = `<span class="badge badge-countdown">⏱ ${countdown}</span>`;
+            } else {
+              statusBadge =
+                '<span class="badge badge-unlocked">Unlocked</span>';
+            }
+
+            let actionBtn = "";
+            if (isMissing) {
+              actionBtn = `<button class="btn btn-sm btn-danger item-action-button" data-action="delete-log" data-item-id="${item.id}" title="Remove this missing item from the dashboard">Delete log</button>`;
+            } else if (isUnlocked) {
+              actionBtn = `<button class="btn btn-sm btn-danger item-action-button" data-action="lock" data-item-id="${item.id}" title="Lock this item again now">Lock Now</button>`;
+            } else {
+              actionBtn = `<button class="btn btn-sm btn-primary item-action-button" data-action="unlock" data-item-id="${item.id}" title="Unlock this item and allow it to run">Unlock</button>`;
+            }
+
+            return `
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <span class="type-icon">${typeBadge}</span>
+                  <strong>${item.originalPath.split("\\").pop()}</strong>
+                  ${statusBadge}
+                </div>
+                <div class="btn-group">${actionBtn}</div>
+              </div>
+              <div class="card-path">${item.originalPath}</div>
+            </div>
+          `;
+          })
+          .join("");
+
+        attachItemActionHandlers();
+      }
+
+      function attachItemActionHandlers() {
+        document.querySelectorAll(".item-action-button").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const action = button.dataset.action;
+            const itemId = button.dataset.itemId;
+            if (!action || !itemId || !window.fortilock) return;
+
+            if (action === "lock") {
+              const ok = await window.fortilock.lockItem(itemId);
+              showToast(ok ? "Item locked." : "Failed to lock item.");
+              if (ok) refreshDashboard();
+            } else if (action === "unlock") {
+              const ok = await window.fortilock.unlockItem(itemId);
+              if (!ok) showToast("Failed to open unlock prompt.");
+            } else if (action === "delete-log") {
+              pendingMissingItemId = itemId;
+              document.getElementById("removeLogPassword").value = "";
+              showOverlay("removeLogOverlay");
+            }
+          });
+        });
+      }
+
+      async function lockItemNow(itemId) {
+        if (!window.fortilock) return;
+        const ok = await window.fortilock.lockItem(itemId);
+        if (ok) {
+          showToast("Item locked.");
+          refreshDashboard();
+        } else {
+          showToast("Failed to lock item.");
+        }
+      }
+
+      async function removeMissingItemNow() {
+        if (!window.fortilock || !pendingMissingItemId) return;
+        const password = document.getElementById("removeLogPassword").value;
+        if (!password) return showToast("Please enter your master password.");
+
+        const result = await window.fortilock.removeItemByPassword(
+          pendingMissingItemId,
+          password,
+        );
+
+        if (result.ok) {
+          showToast("Missing item log deleted.");
+          pendingMissingItemId = null;
+          hideOverlay("removeLogOverlay");
+          refreshDashboard();
+        } else {
+          showToast(result.error || "Failed to delete missing log.");
+        }
+      }
+
+      async function unlockItemNow(itemId) {
+        if (!window.fortilock) return;
+        const ok = await window.fortilock.unlockItem(itemId);
+        if (!ok) {
+          showToast("Failed to open unlock prompt.");
+        }
+      }
+
+      // Refresh countdowns every second
+      function startCountdownRefresh() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => refreshDashboard(), 5000);
+      }
+
+      // ── Lock All ──
+      document
+        .getElementById("btnLockAll")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          showToast("Locking all items...");
+          const ok = await window.fortilock.lockAllNow();
+          if (ok) {
+            refreshDashboard();
+            showToast("All items locked.");
+          } else {
+            showToast("Failed to lock all items.");
+          }
+        });
+
+      // ── Add File / Folder ──
+      document
+        .getElementById("btnAddFile")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const file = await window.fortilock.openFile();
+          if (file) {
+            const result = await window.fortilock.addFile(file);
+            showToast(
+              result.ok
+                ? "File locked successfully."
+                : result.error || "Failed to lock file.",
+            );
+            refreshDashboard();
+          }
+        });
+
+      document
+        .getElementById("btnAddFolder")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const folder = await window.fortilock.openDirectory();
+          if (folder) {
+            const result = await window.fortilock.addFolder(folder);
+            showToast(
+              result.ok
+                ? "Folder locked successfully."
+                : result.error || "Failed to lock folder.",
+            );
+            refreshDashboard();
+          }
+        });
+
+      document
+        .getElementById("btnAddApp")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const appPath = await window.fortilock.openApp();
+          if (appPath) {
+            const result = await window.fortilock.addApp(appPath);
+            showToast(
+              result.ok
+                ? "App locked successfully."
+                : result.error || "Failed to lock app.",
+            );
+            refreshDashboard();
+          }
+        });
+
+      // ── Settings ──
+      function populateSettings(config) {
+        if (!config) return;
+        document.getElementById("idleTimeout").value =
+          config.idleTimeoutMinutes || 15;
+        document.getElementById("globalHotkey").value =
+          config.globalHotkey || "";
+        document.getElementById("autostart").checked =
+          config.autostartEnabled || false;
+      }
+
+      document
+        .getElementById("btnSaveSettings")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const newConfig = {
+            idleTimeoutMinutes:
+              Number.parseInt(
+                document.getElementById("idleTimeout").value,
+                10,
+              ) || 15,
+            globalHotkey: document.getElementById("globalHotkey").value,
+            autostartEnabled: document.getElementById("autostart").checked,
+          };
+          const ok = await window.fortilock.saveConfig(newConfig);
+          showToast(ok ? "Settings saved." : "Failed to save settings.");
+        });
+
+      // ── Change Password ──
+      document
+        .getElementById("btnChangePwd")
+        .addEventListener("click", async () => {
+          if (!window.fortilock) return;
+          const curr = document.getElementById("currentPwd").value;
+          const newP = document.getElementById("newPwd").value;
+          const confirmP = document.getElementById("newPwdConfirm").value;
+          if (!curr || !newP)
+            return showToast("Please fill in all password fields.");
+          if (newP.length < 8)
+            return showToast("New password must be at least 8 characters.");
+          if (newP !== confirmP)
+            return showToast("New passwords do not match.");
+          const ok = await window.fortilock.changePassword(curr, newP);
+          if (ok) {
+            showToast("Password changed successfully.");
+            document.getElementById("currentPwd").value = "";
+            document.getElementById("newPwd").value = "";
+            document.getElementById("newPwdConfirm").value = "";
+          } else {
+            showToast("Failed — check your current password.");
+          }
+        });
+
+      // ── Audit Log ──
+      async function loadAuditLog() {
+        if (!window.fortilock) return;
+        const logs = await window.fortilock.getAuditLogs();
+        const tbody = document.getElementById("auditBody");
+        const empty = document.getElementById("auditEmpty");
+
+        if (!logs || logs.length === 0) {
+          tbody.innerHTML = "";
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+
+        tbody.innerHTML = logs
+          .slice(0, 100)
+          .map((log) => {
+            const time = log.timestamp
+              ? new Date(log.timestamp).toLocaleString()
+              : "—";
+            const statusClass =
+              log.status === "success"
+                ? "log-status-success"
+                : "log-status-failure";
+            return `
+            <tr>
+              <td>${time}</td>
+              <td>${log.action || "—"}</td>
+              <td>${log.type || "—"}</td>
+              <td class="${statusClass}">${log.status || "—"}</td>
+              <td>${log.details || ""}</td>
+            </tr>
+          `;
+          })
+          .join("");
+      }
+
+      // ── Init ──
+      async function init() {
+        document.querySelectorAll(".overlay").forEach((el) => {
+          el.classList.add("hidden");
+          el.style.display = "none";
+        });
+
+        if (window.fortilock && window.fortilock.getDashboardData) {
+          try {
+            const data = await window.fortilock.getDashboardData();
+            if (!data.vaultExists) {
+              document.getElementById("appShell").style.display = "none";
+              document.getElementById("vaultUnlock").style.display = "none";
+              document.getElementById("onboarding").style.display = "flex";
+            } else if (!data.vaultUnlocked) {
+              document.getElementById("appShell").style.display = "none";
+              document.getElementById("onboarding").style.display = "none";
+              document.getElementById("vaultUnlock").style.display = "flex";
+              populateSettings(data.config);
+            } else {
+              document.getElementById("onboarding").style.display = "none";
+              document.getElementById("vaultUnlock").style.display = "none";
+              document.getElementById("appShell").style.display = "flex";
+              renderItems(data.items);
+              populateSettings(data.config);
+              startCountdownRefresh();
+            }
+          } catch {
+            // No vault yet — show onboarding
+            document.getElementById("onboarding").style.display = "flex";
+          }
+        } else {
+          document.getElementById("onboarding").style.display = "flex";
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

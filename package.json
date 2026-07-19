@@ -2,11 +2,13 @@
   "name": "fortilock",
   "version": "1.0.0",
   "description": "> A desktop app to lock applications, files, and folders behind a password/PIN — with real encryption for file/folder content, not just hidden or permission-tricks.",
-  "main": "index.js",
+  "main": "dist/main/main.js",
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "start": "npm run build && electron .",
+    "build": "tsc -p tsconfig.build.json && node ./scripts/copy-assets.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest",
+    "dist": "npm run build && electron-builder --win"
   },
   "repository": {
     "type": "git",
@@ -21,20 +23,24 @@
   },
   "homepage": "https://github.com/Aditya-Sharma-CapG/fortilock#readme",
   "devDependencies": {
+    "@types/archiver": "^8.0.0",
     "@types/jest": "^30.0.0",
+    "@types/jsdom": "^28.0.3",
     "@types/node": "^22.20.1",
+    "@types/unzipper": "^0.10.11",
     "electron": "^43.1.0",
     "electron-builder": "^26.15.3",
     "jest": "^30.4.2",
+    "jsdom": "^29.1.1",
     "playwright": "^1.61.1",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "archiver": "^8.0.0",
+    "archiver": "^7.0.1",
     "auto-launch": "^5.0.6",
-    "ps-list": "^9.0.0",
+    "ps-list": "^7.2.0",
     "unzipper": "^0.12.5"
   }
 }

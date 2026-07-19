@@ -1,0 +1,2 @@
+[This represents a test image file for locking/unlocking operations during tests]
+Sample binary placeholder for testing file encryption workflows.

@@ -1,0 +1,2 @@
+This is a nested file inside test-folder.
+Used for testing folder encryption and nested file handling.

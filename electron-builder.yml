@@ -1,0 +1,31 @@
+appId: com.fortilock.app
+productName: FortiLock
+directories:
+  buildResources: assets
+  output: dist-installer
+files:
+  - dist/**/*
+  - node_modules/**/*
+  - package.json
+
+win:
+  target:
+    - nsis
+    - portable
+  certificateFile: null
+  certificatePassword: null
+  signingHashAlgorithms:
+    - sha256
+  sign: null
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: FortiLock
+
+portable:
+  artifactName: ${productName}-Setup.exe
+
+publish: null

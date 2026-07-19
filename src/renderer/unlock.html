@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unlock Application</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #1a1a1a;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      h2 {
+        margin-bottom: 20px;
+      }
+      input {
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        border: none;
+        width: 80%;
+        max-width: 300px;
+      }
+      button {
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        background: #004085;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #002752;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 id="app-name">Unlock Application</h2>
+    <label for="password" class="sr-only">Master Password</label>
+    <input
+      type="password"
+      id="password"
+      placeholder="Enter Master Password"
+      autofocus
+    />
+    <button id="unlock-btn">Unlock</button>
+
+    <script>
+      const searchParams = new URLSearchParams(window.location.search);
+      const itemId = searchParams.get("id");
+      const label = searchParams.get("label");
+
+      if (label) {
+        document.getElementById("app-name").innerText = `Unlock: ${label}`;
+      }
+
+      document.getElementById("unlock-btn").addEventListener("click", () => {
+        const passwordEl = document.getElementById("password");
+        const password = passwordEl.value;
+        window.fortilock
+          .submitUnlockPassword(password, itemId || "")
+          .then((res) => {
+            // main now returns { ok, error }
+            const success = res && (res.ok === true || res === true);
+            if (!success) {
+              const err =
+                res && res.error
+                  ? res.error
+                  : "Incorrect password. Please try again.";
+              alert(err);
+              passwordEl.value = "";
+              passwordEl.focus();
+            }
+          });
+      });
+
+      document.getElementById("password").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("unlock-btn").click();
+        }
+      });
+    </script>
+  </body>
+</html>

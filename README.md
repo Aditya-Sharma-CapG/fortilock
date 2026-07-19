@@ -41,6 +41,84 @@ Full phase breakdown: [project plan, §8.3](./FortiLock_Project_Plan.md#83-devel
 
 ---
 
+## Quick Start (For Everyone)
+
+### ⬇️ Download & Install
+
+**[👉 Download FortiLock-Setup.exe from Releases](../../releases/latest)**
+
+1. Download `FortiLock-Setup.exe` from the link above
+2. Double-click the file
+3. Follow the installer prompts
+4. Launch FortiLock from Start Menu or Desktop
+
+**No developer tools needed** — just download and run!
+
+---
+
+## Installation
+
+### For End Users
+
+**See the "Quick Start" section above** — download and run the installer!
+
+The installer handles:
+- Installation to your computer
+- Start Menu shortcuts
+- Desktop shortcut (optional)
+- Uninstallation support
+
+**No Node.js, npm, or development tools required.**
+
+---
+
+## Build & Distribution (For Developers)
+
+### For Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run in dev mode (with auto-rebuild)
+npm start
+
+# Run tests
+npm test
+
+# Type check
+npm run typecheck
+```
+
+### Creating the Installer (One-time)
+
+As a developer, to create the `FortiLock-Setup.exe` installer:
+
+```bash
+npm run dist
+```
+
+This generates the installer in `dist-installer/`:
+
+- **FortiLock-Setup.exe** — NSIS installer (recommended for end users)
+
+**Requirements for building:**
+
+- Node.js 18+ and npm
+- Windows (or WSL)
+- ~500 MB free disk space
+
+**What happens during `npm run dist`:**
+
+1. Compiles TypeScript → JavaScript
+2. Bundles all assets
+3. Packages the app with Electron runtime
+4. Creates the standalone exe installer
+
+Once built, share `dist-installer/FortiLock-Setup.exe` with anyone — they only need to run that file.
+
+---
+
 ## License
 
 TBD.
