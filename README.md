@@ -2,8 +2,6 @@
 
 > A desktop app to lock applications, files, and folders behind a password/PIN — with real encryption for file/folder content, not just hidden or permission-tricks.
 
-**Status:** 🚧 In active development — Phase 1 (core crypto & vault logic). Not yet functional.
-
 ---
 
 ## What This Is
@@ -14,108 +12,45 @@ FortiLock lets you password-protect:
 - **Files** — encrypt individual files so their contents are inaccessible without the password.
 - **Folders** — encrypt entire folder trees, including nested contents, with no partial visibility.
 
-Built as a personal-use tool, first for Windows, with the architecture kept portable in case macOS/Linux support follows later.
-
-Full design rationale, architecture, tech stack, edge cases, and the complete development plan live in **[`FortiLock_Project_Plan.md`](./FortiLock_Project_Plan.md)** — the source of truth for this project.
+Built on Windows with real AES-256-GCM encryption for files/folders.
 
 ---
 
-## Honest Security Notes
+## Security Notes
 
-- **File/folder locking is real encryption** (AES-256-GCM, envelope key model) — this is where the actual security guarantee lives.
-- **App-locking is a deterrent, not a hard security boundary.** A local admin can bypass it (kill the watcher, rename the executable, boot into Safe Mode). This is an inherent limitation of userspace app-locking, not a bug — see the plan's [Threat Model](./FortiLock_Project_Plan.md#91-threat-model) for the full breakdown.
-- **There is no password recovery by design.** Forgetting the master password means locked files/folders are permanently unrecoverable. This is the honest trade-off of real encryption.
-
----
-
-## Roadmap
-
-- [ ] **Phase 1** — Core crypto & vault logic _(in progress)_
-- [ ] **Phase 2** — File & folder locking, minimal UI
-- [ ] **Phase 3** — App locking (process watcher)
-- [ ] **Phase 4** — Settings, tray icon, audit log, polish
-- [ ] **Phase 5** — Packaging & Windows release
-- [ ] **Phase 6** — macOS / Linux ports _(future)_
-
-Full phase breakdown: [project plan, §8.3](./FortiLock_Project_Plan.md#83-development-phases).
-
----
-
-## Quick Start (For Everyone)
-
-### ⬇️ Download & Install
-
-**[👉 Download FortiLock-Setup.exe from Releases](../../releases/latest)**
-
-1. Download `FortiLock-Setup.exe` from the link above
-2. Double-click the file
-3. Follow the installer prompts
-4. Launch FortiLock from Start Menu or Desktop
-
-**No developer tools needed** — just download and run!
+- **File/folder locking is real encryption** (AES-256-GCM, envelope key model).
+- **App-locking is a deterrent, not hard security** — a local admin can bypass it (kill the watcher, rename the executable, boot into Safe Mode).
+- **Recovery codes to reset your password** — save them securely. If you lose both your password and recovery codes, locked items are permanently inaccessible.
 
 ---
 
 ## Installation
 
-### For End Users
+### For Users
 
-**See the "Quick Start" section above** — download and run the installer!
+**1. Get the installer:**
 
-The installer handles:
-- Installation to your computer
-- Start Menu shortcuts
-- Desktop shortcut (optional)
-- Uninstallation support
+- Go to the [Releases](https://github.com/Aditya-Sharma-CapG/fortilock/releases) page
+- Download `FortiLock-Setup.exe` from the latest release
+- Double-click to run
+- Follow the installer prompts
+- Launch from Start Menu or Desktop
 
-**No Node.js, npm, or development tools required.**
+**No other tools needed.**
 
----
+### For Developers
 
-## Build & Distribution (For Developers)
-
-### For Development
+Clone and build:
 
 ```bash
-# Install dependencies
 npm install
-
-# Run in dev mode (with auto-rebuild)
-npm start
-
-# Run tests
-npm test
-
-# Type check
-npm run typecheck
+npm run build       # Compile TypeScript
+npm test            # Run tests
+npm start           # Run in dev mode
+npm run dist        # Build installer (creates dist-installer/FortiLock-Setup.exe)
 ```
 
-### Creating the Installer (One-time)
-
-As a developer, to create the `FortiLock-Setup.exe` installer:
-
-```bash
-npm run dist
-```
-
-This generates the installer in `dist-installer/`:
-
-- **FortiLock-Setup.exe** — NSIS installer (recommended for end users)
-
-**Requirements for building:**
-
-- Node.js 18+ and npm
-- Windows (or WSL)
-- ~500 MB free disk space
-
-**What happens during `npm run dist`:**
-
-1. Compiles TypeScript → JavaScript
-2. Bundles all assets
-3. Packages the app with Electron runtime
-4. Creates the standalone exe installer
-
-Once built, share `dist-installer/FortiLock-Setup.exe` with anyone — they only need to run that file.
+See [BUILD.md](./BUILD.md) for detailed build instructions.
 
 ---
 
@@ -127,4 +62,4 @@ TBD.
 
 ## Disclaimer
 
-This is a personal project, not a substitute for full-disk encryption (BitLocker/FileVault/LUKS) if your threat model includes physical theft of the machine. See the [Risks & Limitations](./FortiLock_Project_Plan.md#9-risks--known-limitations-read-before-building) section of the project plan for the full picture before relying on this for anything sensitive.
+This is not a substitute for full-disk encryption if your threat model includes physical theft of the machine. Use at your own risk.
